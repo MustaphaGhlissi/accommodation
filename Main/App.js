@@ -8,16 +8,24 @@
 
 import React, { Component } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import Home from './Home';
+import { HomeStack } from './config/stack';
+import { StatusBar } from 'react-native';
+import { withTheme } from 'react-native-paper';
 
 export class App extends Component {
   render() {
+
+    const {theme} = this.props;
+
     return (
       <NavigationContainer>
-        <Home />
+        <StatusBar backgroundColor={theme.colors.primary}/>
+        <HomeStack />
       </NavigationContainer>
     )
   }
 }
+
+App = withTheme(App);
 
 export default App

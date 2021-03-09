@@ -2,12 +2,16 @@ import React from 'react';
 import { View, Platform, TouchableNativeFeedback, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { styles } from '../assets/styles';
+import { useNavigation } from '@react-navigation/native';
 
-const AccoItem = ({item}) => {
+const ExaminationItem = ({item}) => {
+
+    const navigation = useNavigation();
+
     return (
         Platform.OS === 'android' ? 
         <TouchableNativeFeedback
-            onPress={() => {}}
+            onPress={() => navigation.navigate('Tasks')}
             useForeground
         >
             <View style={styles.accoItem}>
@@ -17,7 +21,7 @@ const AccoItem = ({item}) => {
             </View>
         </TouchableNativeFeedback>:
         <TouchableOpacity
-            onPress={() => {}}
+        onPress={() => navigation.navigate('Tasks')}
             activeOpacity={0.6}
             style={styles.accoItem}
         >
@@ -28,4 +32,4 @@ const AccoItem = ({item}) => {
     )
 }
 
-export default AccoItem
+export default ExaminationItem
