@@ -16,7 +16,7 @@ const ExaminationItem = ({item}) => {
         >
             <View style={styles.accoItem}>
                 <Text>
-                    {item.name}
+                    {item.datePlanned + ' ' + item.id}
                 </Text>
             </View>
         </TouchableNativeFeedback>:
@@ -26,7 +26,7 @@ const ExaminationItem = ({item}) => {
             style={styles.accoItem}
         >
             <Text>
-                {item.name}
+                {item.datePlanned + ' ' + item.id}
             </Text>
         </TouchableOpacity>
     )

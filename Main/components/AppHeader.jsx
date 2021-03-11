@@ -1,5 +1,7 @@
 import React from 'react';
 import { Appbar } from 'react-native-paper';
+import { useDispatch } from 'react-redux';
+import { toggleDialog } from '../redux/actions/actionCreators';
 
 const AppHeader = ({scene, previous, navigation}) => {
 
@@ -11,6 +13,8 @@ const AppHeader = ({scene, previous, navigation}) => {
         ? options.title
         : scene.route.name;
 
+    const dispatch = useDispatch();
+
     return (
         <Appbar.Header>
             {previous ? <Appbar.BackAction onPress={navigation.goBack} /> : null}
@@ -21,7 +25,7 @@ const AppHeader = ({scene, previous, navigation}) => {
                 <>
                     <Appbar.Action icon='arrow-up' color='#fff' onPress={() => {}}/>
                     <Appbar.Action icon='arrow-down' color='#fff' onPress={() => navigation.navigate('Download')}/>
-                    <Appbar.Action icon='cog' color='#fff' onPress={() => navigation.navigate('Settings')}/>
+                    <Appbar.Action icon='cog' color='#fff' onPress={() => dispatch(toggleDialog())}/>
                 </>
             }
         </Appbar.Header>

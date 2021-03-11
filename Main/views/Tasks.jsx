@@ -38,8 +38,12 @@ class Tasks extends Component {
                     data={tasks}
                     renderItem={({item, index}) => <TaskItem item={item} key={index}/>}
                     keyExtractor={item => item.id.toString()}
-                    refreshControl={<RefreshControl onRefresh={() => {}} colors={[theme.colors.primary, theme.colors.accent]} />}
-                    refreshing={false}
+                    refreshControl={<RefreshControl 
+                            refreshing={false}
+                            onRefresh={() => {}} 
+                            colors={[theme.colors.primary, theme.colors.accent]} 
+                        />
+                    }
                 />
 
                 <FAB

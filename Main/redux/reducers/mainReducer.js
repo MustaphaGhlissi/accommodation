@@ -4,8 +4,10 @@ import {
     HANDLE_LOADING,
     HANDLE_INPUT_TEXT,
     HANDLE_RADIO,
-    CHECK_FLAT_EXAMINATION,
-    UNCHECK_FLAT_EXAMINATION,
+    DOWNLOAD_EXAMINATIONS_SUCCESS,
+    CHECK_DOWNLOAD,
+    FETCH_EXAMINATIONS_SUCCESS,
+    TOGGLE_DIALOG,
 } from '../actions/actionTypes';
 
 
@@ -19,7 +21,10 @@ const initialState = {
     [FINISH_FORM]: {
         remark: null
     },
-    checkedFlatExaminations: []
+    downloads: null,
+    checkedDownloads: [],
+    examinations: null,
+    isOpenDialog: false
 }
 
 export const mainReducer = (state = initialState, action) => {
@@ -38,6 +43,12 @@ export const mainReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isLoading: payload
+            }
+
+        case TOGGLE_DIALOG:
+            return {
+                ...state,
+                isOpenDialog: !state.isOpenDialog
             }
 
 
@@ -59,20 +70,36 @@ export const mainReducer = (state = initialState, action) => {
                 }
             }
 
-        case CHECK_FLAT_EXAMINATION: 
+        case FETCH_EXAMINATIONS_SUCCESS:
             return {
                 ...state,
-                checkedFlatExaminations: [
-                    ...state.checkedFlatExaminations,
+                examinations: payload
+            }
+
+        case DOWNLOAD_EXAMINATIONS_SUCCESS:
+            return {
+                ...state,
+                downloads: payload
+            }
+
+        case CHECK_DOWNLOAD: 
+            
+            let checked = state.checkedDownloads;
+            let exist = state.checkedDownloads.find(item => payload.id === item.id)
+            
+            if(exist) {
+                checked = checked.filter(item => payload.id !== item.id)
+            }
+            else {
+                checked = [
+                    ...checked,
                     payload
                 ]
             }
-
-        case UNCHECK_FLAT_EXAMINATION: 
-            let checked = state.checkedFlatExaminations.filter(item => payload.id !== item.id)
+            
             return {
                 ...state,
-                checkedFlatExaminations: checked
+                checkedDownloads: checked
             }
 
         default: 

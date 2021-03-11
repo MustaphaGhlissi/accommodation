@@ -4,56 +4,63 @@ import { FAB, withTheme } from 'react-native-paper';
 import { connect } from 'react-redux';
 import { styles } from '../assets/styles';
 import DownloadItem from '../components/DownloadItem';
-import { onCheckFlatExamination } from '../redux/actions/actionCreators';
+import { downloadExaminations, onCheckDownload, saveDownloads } from '../redux/actions/actionCreators';
+import Loader from './Loader';
 
 class Download extends Component {
 
     constructor(props) {
         super(props);
+    }
 
-        this.state = {
-            downloads: [
-                {
-                  id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-                  name: 'Flat examination 78',
-                },
-                {
-                  id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-                  name: 'Flat examination 778',
-                },
-                {
-                  id: '58694a0f-3da1-471f-bd96-145571e29d72',
-                  name: 'Flat examination 728',
-                },
-            ]
-        }
+    componentDidMount() {
+        const {
+            download
+        } = this.props;
+
+        download();
     }
 
     render() {
-        const {downloads} = this.state;
-        const {theme, checkItem, checkedItems} = this.props;
+
+        let {
+            navigation, theme, onCheck, 
+            checkedDownloads, saveToStorage,
+            data, download,
+            isRefreshing,
+            isLoading
+        } = this.props;
+
+        if(isLoading && !data) {
+            return <Loader />
+        }
 
         return (
             <SafeAreaView style={styles.container}>
                 <FlatList
                     contentContainerStyle={styles.flatList}
-                    data={downloads}
+                    data={data}
                     renderItem={({item, index}) => <DownloadItem 
-                        item={item} key={index} 
-                        onCheck={() => checkItem(item)} checked={checkedItems.find(checkedItem => item.id === checkItem.id )}   
-                        
+                            item={item} 
+                            key={index} 
+                            onCheck={() => onCheck(item)} 
+                            checked={checkedDownloads.find(checkedDownload => checkedDownload.id === item.id) !== undefined}
                         />
                     }
                     keyExtractor={item => item.id.toString()}
-                    refreshControl={<RefreshControl onRefresh={() => {}} colors={[theme.colors.primary, theme.colors.accent]} />}
-                    refreshing={false}
+                    refreshControl={<RefreshControl 
+                        refreshing={isRefreshing} 
+                        onRefresh={() => download(true)} 
+                        colors={[theme.colors.primary, theme.colors.accent]} 
+                    />
+                }
                 />
 
                 <FAB
                     style={styles.fab}
                     color='#fff'
                     icon="check"
-                    onPress={() => console.log('Pressed')}
+                    onPress={() => saveToStorage(navigation, checkedDownloads)}
                 />
             </SafeAreaView>
         )
@@ -62,11 +69,16 @@ class Download extends Component {
 
 
 const mapStateToProps = ({main}) => ({
-    checkedItems: main.checkedFlatExaminations
+    checkedDownloads: main.checkedDownloads,
+    isLoading: main.isLoading,
+    isRefreshing: main.isRefreshing,
+    data: main.downloads ?.examinations
 })
 
 const mapDispatchToProps = dispatch => ({
-    checkItem: (item) => dispatch(onCheckFlatExamination(item)),
+    onCheck: (item) => dispatch(onCheckDownload(item)),
+    saveToStorage: (navigation, data) => dispatch(saveDownloads(navigation, data)),
+    download: (bool = false) => dispatch(downloadExaminations(bool))
 })
 
 Download = withTheme(Download)

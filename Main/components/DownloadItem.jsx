@@ -1,12 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View, Platform, TouchableNativeFeedback, TouchableOpacity } from 'react-native';
 import { Text, Checkbox, useTheme } from 'react-native-paper';
 import { styles } from '../assets/styles';
-import { useNavigation } from '@react-navigation/native';
+import { useStore } from 'react-redux';
 
 const DownloadItem = ({item, onCheck, checked}) => {
 
-    const navigation = useNavigation();
     const theme = useTheme();
 
     return (
@@ -17,7 +16,7 @@ const DownloadItem = ({item, onCheck, checked}) => {
         >
             <View style={styles.downloadItem}>
                 <Text style={styles.downloadText}>
-                    {item.name}
+                    {item.datePlanned + ' ' + item.id}
                 </Text>
 
                 <Checkbox
@@ -30,11 +29,17 @@ const DownloadItem = ({item, onCheck, checked}) => {
         <TouchableOpacity
             onPress={onCheck}
             activeOpacity={0.6}
-            style={styles.accoItem}
+            style={styles.downloadItem}
         >
-            <Text>
-                {item.name}
+            <Text style={styles.downloadText}>
+                {item.datePlanned + ' ' + item.id}
             </Text>
+
+            <Checkbox
+                color={theme.colors.primary}
+                status={checked ? 'checked' : 'unchecked'}
+                onPress={onCheck}
+            />
         </TouchableOpacity>
     )
 }
