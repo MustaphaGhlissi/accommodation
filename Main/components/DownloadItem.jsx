@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import { View, Platform, TouchableNativeFeedback, TouchableOpacity } from 'react-native';
 import { Text, Checkbox, useTheme } from 'react-native-paper';
 import { styles } from '../assets/styles';
-import { useStore } from 'react-redux';
+import _ from 'lodash';
 
 const DownloadItem = ({item, onCheck, checked}) => {
 
@@ -16,7 +16,7 @@ const DownloadItem = ({item, onCheck, checked}) => {
         >
             <View style={styles.downloadItem}>
                 <Text style={styles.downloadText}>
-                    {item.datePlanned + ' ' + item.id}
+                    {_.upperFirst(item.datePlanned) + ' ' + item.id}
                 </Text>
 
                 <Checkbox
@@ -32,7 +32,7 @@ const DownloadItem = ({item, onCheck, checked}) => {
             style={styles.downloadItem}
         >
             <Text style={styles.downloadText}>
-                {item.datePlanned + ' ' + item.id}
+                {_.upperFirst(item.datePlanned) + ' ' + item.id}
             </Text>
 
             <Checkbox

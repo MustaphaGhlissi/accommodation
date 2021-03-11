@@ -61,6 +61,7 @@ class Download extends Component {
                     color='#fff'
                     icon="check"
                     onPress={() => saveToStorage(navigation, checkedDownloads)}
+                    disabled={checkedDownloads.length === 0}
                 />
             </SafeAreaView>
         )

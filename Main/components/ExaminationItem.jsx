@@ -3,6 +3,7 @@ import { View, Platform, TouchableNativeFeedback, TouchableOpacity } from 'react
 import { Text } from 'react-native-paper';
 import { styles } from '../assets/styles';
 import { useNavigation } from '@react-navigation/native';
+import _ from 'lodash';
 
 const ExaminationItem = ({item}) => {
 
@@ -11,22 +12,22 @@ const ExaminationItem = ({item}) => {
     return (
         Platform.OS === 'android' ? 
         <TouchableNativeFeedback
-            onPress={() => navigation.navigate('Tasks')}
+            onPress={() => navigation.navigate('Tasks', {examinationId: item.id})}
             useForeground
         >
             <View style={styles.accoItem}>
                 <Text>
-                    {item.datePlanned + ' ' + item.id}
+                    {_.upperFirst(item.datePlanned) + ' ' + item.id}
                 </Text>
             </View>
         </TouchableNativeFeedback>:
         <TouchableOpacity
-        onPress={() => navigation.navigate('Tasks')}
+            onPress={() => navigation.navigate('Tasks', {examinationId: item.id})}
             activeOpacity={0.6}
             style={styles.accoItem}
         >
             <Text>
-                {item.datePlanned + ' ' + item.id}
+                {_.upperFirst(item.datePlanned) + ' ' + item.id}
             </Text>
         </TouchableOpacity>
     )

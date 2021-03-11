@@ -3,6 +3,7 @@ import { View, Platform, TouchableNativeFeedback, TouchableOpacity } from 'react
 import { Text } from 'react-native-paper';
 import { styles } from '../assets/styles';
 import { useNavigation } from '@react-navigation/native';
+import _ from "lodash";
 
 const TaskItem = ({item}) => {
 
@@ -16,17 +17,17 @@ const TaskItem = ({item}) => {
         >
             <View style={styles.accoItem}>
                 <Text>
-                    {item.name}
+                {_.upperFirst(item.description)}
                 </Text>
             </View>
         </TouchableNativeFeedback>:
         <TouchableOpacity
-        onPress={() => navigation.navigate('Task')}
+            onPress={() => navigation.navigate('Task')}
             activeOpacity={0.6}
             style={styles.accoItem}
         >
             <Text>
-                {item.name}
+                {_.upperFirst(item.description)}
             </Text>
         </TouchableOpacity>
     )

@@ -5,8 +5,10 @@ import {
     HANDLE_RADIO,
     CHECK_DOWNLOAD,
     FETCH_EXAMINATIONS_SUCCESS,
+    FETCH_TASKS_SUCCESS,
     DOWNLOAD_EXAMINATIONS_SUCCESS,
-    TOGGLE_DIALOG
+    TOGGLE_DIALOG,
+    FILL_FORM
 
 } from './actionTypes';
 
@@ -18,8 +20,12 @@ import {
     getTasks
 } from '../services/tasks';
 
-import { storeExaminations, readExaminations } from '../../storage';
+import { 
+    storeExaminations, readExaminations,
+    storeItem, readItem, removeStorage
+} from '../../storage';
 import { Alert } from 'react-native';
+import { SETTINGS_FORM } from '../../constants/forms';
 
 
 export function handleLoading(bool) {
@@ -93,11 +99,9 @@ export function downloadExaminations(refreshMode) {
         
         Promise.all([getExaminations(), getTasks()])
             .then(function (results) {
-            
                 const data = {};
                 data.examinations = results[0].data;
                 data.tasks = results[1].data;
-                
                 dispatch(downloadExaminationsSuccess(data))
             }).catch(function (error) {
                 console.log(error);
@@ -113,10 +117,23 @@ export function downloadExaminations(refreshMode) {
     }
 }
 
-export function saveDownloads(navigation, data) {
-    
-    return (dispatch) => {
-        storeExaminations(data).then(() => {
+export function saveDownloads(navigation, examinations) {
+    return (dispatch, getState) => {
+
+        const state = getState().main,
+            {tasks} = state.downloads;
+        let checkedTasks = [];
+
+
+        for (const examination of examinations) {
+            for (const task of tasks) {
+                if(task.flatExaminationId === examination.id) {
+                    checkedTasks.push(task);
+                }
+            }
+        }
+
+        storeExaminations(examinations, checkedTasks).then(() => {
             Alert.alert('Info', 'Data saved successfully.');
             navigation.goBack();
             fetchExaminations(true);
@@ -143,8 +160,6 @@ export function fetchExaminations(isRefreshing) {
 
         readExaminations().then(values => {
             let examinations = values[0];
-            console.log(values);
-            console.log(examinations);
             
             if(examinations[1]) {
                 examinations = JSON.parse(examinations[1]);
@@ -163,5 +178,80 @@ export function fetchExaminations(isRefreshing) {
                 dispatch(handleLoading(false));
             }
         })
+    }
+}
+
+
+export function fetchTasksSuccess(data) {
+    return {
+        type: FETCH_TASKS_SUCCESS,
+        payload: data
+    }
+}
+
+export function fetchTasks(examinationId, isRefreshing) {
+    return (dispatch) => {
+        
+        if(isRefreshing) {
+            dispatch(handleRefreshing(true));
+        }
+        else {
+            dispatch(handleLoading(true));
+        }
+
+        readExaminations().then(values => {
+            let tasks = values[1];
+            
+            if(tasks[1]) {
+                tasks = JSON.parse(tasks[1]);
+                tasks = tasks.filter(task => task.flatExaminationId === examinationId)
+                dispatch(fetchTasksSuccess(tasks));
+            }  
+
+        }).catch(function(error) {
+            
+            console.log(error);
+
+        }).then(function() {
+            if(isRefreshing) {
+                dispatch(handleRefreshing(false));
+            }
+            else {
+                dispatch(handleLoading(false));
+            }
+        })
+    }
+}
+
+export function saveIpAddress(navigation, ipAddress) {
+    return (dispatch, getState) => {
+
+        let state = getState().main, form = state[SETTINGS_FORM];
+
+        storeItem('@accommodation_ip', form.ipAddress).then(() => {
+            Alert.alert('Info', 'Ip address saved successfully.');
+            navigation.popToTop();
+        });
+    }
+}
+
+export function readIpAddress() {
+    return (dispatch, getState) => {
+        readItem('@accommodation_ip').then((value) => {
+            if(value) {
+                dispatch(fillForm(SETTINGS_FORM, {
+                    ipAddress: value
+                }))
+            }
+        });
+    }
+}
+
+export function fillForm(formName, data) {
+    return {
+        type: FILL_FORM,
+        payload: {
+            [formName]: data
+        }
     }
 }

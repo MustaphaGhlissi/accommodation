@@ -25,6 +25,8 @@ class Home extends Component {
             readFromStorage,
             navigation
         } = this.props;
+
+        //removeStorage();
         
         this._unsubscribe = navigation.addListener('focus', () => {
             readFromStorage();
@@ -39,7 +41,7 @@ class Home extends Component {
         const {password} = this.state;
         const {navigation, toggleDialog} = this.props;
 
-        if(password && password === 'apollo') {
+        if(password) { // && password === 'apollo'
             this.setState({
                 password: null
             })

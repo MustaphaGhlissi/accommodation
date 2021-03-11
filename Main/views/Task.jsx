@@ -20,7 +20,11 @@ class Task extends Component {
 
     render() {
         
-        const {form, navigation} = this.props;
+        const {
+            form, 
+            navigation,
+            handleRadio
+        } = this.props;
         
         return (
             <KeyboardAwareScrollView
@@ -41,11 +45,11 @@ class Task extends Component {
                         >
                             <View style={styles.radio}>
                                 <RadioButton value="passed" />
-                                <Text>Passed</Text>
+                                <Text style={{flex: 1}} onPress={() => handleRadio('result', 'passed')}>Passed</Text>
                             </View>
                             <View style={styles.radio}>
                                 <RadioButton value="not passed" />
-                                <Text>Not passed</Text>
+                                <Text style={{flex: 1}} onPress={() => handleRadio('result', 'not passed')}>Not passed</Text>
                             </View>
                         </RadioButton.Group>
                     </View>

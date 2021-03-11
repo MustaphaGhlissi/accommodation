@@ -1,4 +1,4 @@
-import { FINISH_FORM, TASK_FORM } from '../../constants/forms';
+import { FINISH_FORM, SETTINGS_FORM, TASK_FORM } from '../../constants/forms';
 import { 
     HANDLE_REFRESHING,
     HANDLE_LOADING,
@@ -8,6 +8,8 @@ import {
     CHECK_DOWNLOAD,
     FETCH_EXAMINATIONS_SUCCESS,
     TOGGLE_DIALOG,
+    FILL_FORM,
+    FETCH_TASKS_SUCCESS,
 } from '../actions/actionTypes';
 
 
@@ -21,9 +23,13 @@ const initialState = {
     [FINISH_FORM]: {
         remark: null
     },
+    [SETTINGS_FORM]: {
+        ipAddress: null
+    },
     downloads: null,
     checkedDownloads: [],
     examinations: null,
+    tasks: null,
     isOpenDialog: false
 }
 
@@ -73,7 +79,14 @@ export const mainReducer = (state = initialState, action) => {
         case FETCH_EXAMINATIONS_SUCCESS:
             return {
                 ...state,
-                examinations: payload
+                examinations: payload,
+                checkedDownloads: payload
+            }
+
+        case FETCH_TASKS_SUCCESS:
+            return {
+                ...state,
+                tasks: payload
             }
 
         case DOWNLOAD_EXAMINATIONS_SUCCESS:
@@ -102,6 +115,12 @@ export const mainReducer = (state = initialState, action) => {
                 checkedDownloads: checked
             }
 
+        case FILL_FORM:
+            return {
+                ...state,
+                ...payload
+            }
+        
         default: 
             return state;
     }
