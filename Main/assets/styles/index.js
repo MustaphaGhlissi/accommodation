@@ -11,6 +11,16 @@ export const styles = StyleSheet.create({
         flex: 1,
         padding: 20
     },
+    centered: {
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    muted: {
+        color: '#C1C1C1',
+        fontFamily: 'Roboto-Bold',
+        fontSize: 27,
+        marginBottom: 15
+    },
     flatList: {
         flexGrow: 1
     },
@@ -38,5 +48,8 @@ export const styles = StyleSheet.create({
     radio: {
         flexDirection: 'row',
         alignItems: 'center'
+    },
+    labelDownload: {
+        marginLeft: 15
     }
 })

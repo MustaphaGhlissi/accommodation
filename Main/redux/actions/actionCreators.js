@@ -8,16 +8,20 @@ import {
     FETCH_TASKS_SUCCESS,
     DOWNLOAD_EXAMINATIONS_SUCCESS,
     TOGGLE_DIALOG,
-    FILL_FORM
-
+    FILL_FORM,
+    FILL_PARAM,
+    HANDLE_DOWNLOAD,
+    HANDLE_UPLOAD
 } from './actionTypes';
 
 import {
-    getExaminations
+    getExaminations,
+    patchExamination
 } from '../services/examinations';
 
 import {
-    getTasks
+    getTasks,
+    patchTask
 } from '../services/tasks';
 
 import { 
@@ -25,8 +29,25 @@ import {
     storeItem, readItem, removeStorage
 } from '../../storage';
 import { Alert } from 'react-native';
-import { SETTINGS_FORM } from '../../constants/forms';
+import { FINISH_FORM, SETTINGS_FORM, TASK_FORM } from '../../constants/forms';
 
+
+
+
+
+export function handleUploading(bool) {
+    return {
+        type: HANDLE_UPLOAD,
+        payload: bool
+    }
+}
+
+export function handleDownloading(bool) {
+    return {
+        type: HANDLE_DOWNLOAD,
+        payload: bool
+    }
+}
 
 export function handleLoading(bool) {
     return {
@@ -122,8 +143,9 @@ export function saveDownloads(navigation, examinations) {
 
         const state = getState().main,
             {tasks} = state.downloads;
-        let checkedTasks = [];
+        let checkedTasks = [], patchs = [];
 
+        dispatch(handleDownloading(true));
 
         for (const examination of examinations) {
             for (const task of tasks) {
@@ -131,13 +153,23 @@ export function saveDownloads(navigation, examinations) {
                     checkedTasks.push(task);
                 }
             }
+            patchs.push(patchExamination(examination.id, {state: 265}));
         }
 
-        storeExaminations(examinations, checkedTasks).then(() => {
-            Alert.alert('Info', 'Data saved successfully.');
-            navigation.goBack();
-            fetchExaminations(true);
-        });
+        Promise.all(patchs)
+            .then(function (results) {
+                console.log(results);
+                storeExaminations(examinations, checkedTasks).then(() => {
+                    Alert.alert('Info', 'Data saved successfully.');
+                    navigation.goBack();
+                    fetchExaminations(true);
+                });
+            }).catch(function (error) {
+                console.log(error);
+            })
+            .then(function () {
+                dispatch(handleDownloading(false));
+            });
     }
 }
 
@@ -181,11 +213,32 @@ export function fetchExaminations(isRefreshing) {
     }
 }
 
+export function updateExamination(navigation, examinationId) {
+    return (dispatch, getState) => {
+        let state = getState().main, form = state[FINISH_FORM],
+            {examinations} = state,
+            {remark} = form,
+            index;
 
-export function fetchTasksSuccess(data) {
+        index = examinations.findIndex(el => el.id === examinationId);
+        examinations[index].remark = remark;
+        examinations[index].state = 266;
+
+        storeItem('@examinations', JSON.stringify(examinations)).then(() => {
+            Alert.alert('Info', 'Data saved successfully.');
+            navigation.goBack();
+            dispatch(fetchExaminations(true));
+        });
+    }
+}
+
+export function fetchTasksSuccess(tasks, examinationTasks) {
     return {
         type: FETCH_TASKS_SUCCESS,
-        payload: data
+        payload: {
+            tasks,
+            examinationTasks
+        }
     }
 }
 
@@ -200,12 +253,12 @@ export function fetchTasks(examinationId, isRefreshing) {
         }
 
         readExaminations().then(values => {
-            let tasks = values[1];
+            let examinationTasks, tasks = values[1];
             
             if(tasks[1]) {
                 tasks = JSON.parse(tasks[1]);
-                tasks = tasks.filter(task => task.flatExaminationId === examinationId)
-                dispatch(fetchTasksSuccess(tasks));
+                examinationTasks = tasks.filter(task => task.flatExaminationId === examinationId)
+                dispatch(fetchTasksSuccess(tasks, examinationTasks));
             }  
 
         }).catch(function(error) {
@@ -223,15 +276,80 @@ export function fetchTasks(examinationId, isRefreshing) {
     }
 }
 
+export function updateTask(navigation, task) {
+    return (dispatch, getState) => {
+        let state = getState().main, form = state[TASK_FORM],
+            {tasks} = state,
+            {remark, result} = form,
+            index;
+
+        task.remark = remark;
+        task.result = result;
+        index = tasks.findIndex(el => el.id === task.id);
+
+        tasks[index] = task;
+
+        storeItem('@tasks', JSON.stringify(tasks)).then(() => {
+            Alert.alert('Info', 'Data saved successfully.');
+            navigation.goBack();
+            dispatch(fetchTasks(task.flatExaminationId));
+        });
+    }
+}
+
+export function upload() {
+    return (dispatch, getState) => {
+        let state = getState().main,
+            {examinations, tasks} = state, 
+            patchs = [], upExaminations, filteredTasks;
+
+            dispatch(handleUploading(true));
+
+            upExaminations = examinations.filter(el => el.state === 266);
+            examinations = examinations.filter(el => el.state !== 266);
+            
+            for (const examination of upExaminations) {
+                patchs.push(patchExamination(examination.id, examination));
+                
+                filteredTasks = tasks.filter(el => el.flatExaminationId === examination.id);
+                tasks = tasks.filter(el => el.flatExaminationId !== examination.id);
+                
+                for (const task of filteredTasks) {
+                    patchs.push(patchTask(task.id, task))
+                }
+            }    
+            
+            Promise
+                .all(patchs)
+                .then(function (results) {
+                    storeExaminations(examinations, tasks).then(() => {
+                        Alert.alert('Info', 'Data saved successfully.');
+                        navigation.goBack();
+                        fetchExaminations(true);
+                    });
+                }).catch(function (error) {
+                    console.log(error);
+                })
+                .then(function () {
+                    dispatch(handleUploading(false));
+                });
+    }
+}
+
 export function saveIpAddress(navigation, ipAddress) {
     return (dispatch, getState) => {
 
-        let state = getState().main, form = state[SETTINGS_FORM];
+        let state = getState().main, form = state[SETTINGS_FORM], {storedIpAddress} = state;
 
-        storeItem('@accommodation_ip', form.ipAddress).then(() => {
-            Alert.alert('Info', 'Ip address saved successfully.');
+        if(storedIpAddress !== form.ipAddress) {
+            storeItem('@accommodation_ip', form.ipAddress).then(() => {
+                Alert.alert('Info', 'Ip address saved successfully.');
+                navigation.popToTop();
+            });
+        }
+        else {
             navigation.popToTop();
-        });
+        }
     }
 }
 
@@ -241,6 +359,9 @@ export function readIpAddress() {
             if(value) {
                 dispatch(fillForm(SETTINGS_FORM, {
                     ipAddress: value
+                }))
+                dispatch(fillParam({
+                    storedIpAddress: value
                 }))
             }
         });
@@ -253,5 +374,12 @@ export function fillForm(formName, data) {
         payload: {
             [formName]: data
         }
+    }
+}
+
+export function fillParam(data) {
+    return {
+        type: FILL_PARAM,
+        payload: data
     }
 }

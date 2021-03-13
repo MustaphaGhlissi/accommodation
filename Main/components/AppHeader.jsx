@@ -1,7 +1,7 @@
 import React from 'react';
 import { Appbar } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
-import { toggleDialog } from '../redux/actions/actionCreators';
+import { toggleDialog, upload } from '../redux/actions/actionCreators';
 import NetInfo from "@react-native-community/netinfo";
 import { Alert } from 'react-native';
 
@@ -25,7 +25,15 @@ const AppHeader = ({scene, previous, navigation}) => {
             {
                 !previous &&
                 <>
-                    <Appbar.Action icon='arrow-up' color='#fff' onPress={() => {}}/>
+                    <Appbar.Action icon='arrow-up' color='#fff' onPress={() => {
+                         NetInfo.fetch().then(state => {
+                            if(!state.isConnected) {
+                                Alert.alert('Error', 'No internet connection\nCheck you connectivity and try again.')
+                                return false;
+                            }
+                            dispatch(upload());
+                        });
+                    }}/>
                     <Appbar.Action icon='arrow-down' color='#fff' onPress={() => {
                         NetInfo.fetch().then(state => {
                             if(!state.isConnected) {

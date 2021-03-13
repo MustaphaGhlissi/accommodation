@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, FlatList, SafeAreaView, RefreshControl, Alert } from 'react-native';
+import { Text, View, FlatList, SafeAreaView, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { Button, Dialog, Portal, TextInput, withTheme } from 'react-native-paper';
 import { styles } from '../assets/styles';
 import ExaminationItem from '../components/ExaminationItem';
@@ -41,7 +41,7 @@ class Home extends Component {
         const {password} = this.state;
         const {navigation, toggleDialog} = this.props;
 
-        if(password) { // && password === 'apollo'
+        if(password && password === 'apollo') { 
             this.setState({
                 password: null
             })
@@ -60,7 +60,8 @@ class Home extends Component {
             isLoading,
             readFromStorage,
             isOpenDialog, 
-            toggleDialog
+            toggleDialog,
+            isUploading
         } = this.props;
 
         const {
@@ -107,6 +108,22 @@ class Home extends Component {
                     </Dialog.Actions>
                     </Dialog>
                 </Portal>
+
+
+                <Portal>
+                    <Dialog visible={isUploading} onDismiss={toggleDialog}>
+                        <Dialog.Content>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <ActivityIndicator color={theme.colors.primary}/>
+                                <Text style={styles.labelDownload}>Uploading...</Text>
+                            </View>
+                        </Dialog.Content>
+                    </Dialog>
+                </Portal>
             </SafeAreaView>
         )
     }
@@ -114,6 +131,7 @@ class Home extends Component {
 
 const mapStateToProps = ({main}) => ({
     isLoading: main.isLoading,
+    isUploading: main.isUploading,
     isRefreshing: main.isRefreshing,
     data: main.examinations,
     isOpenDialog: main.isOpenDialog

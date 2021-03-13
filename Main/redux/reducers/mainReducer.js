@@ -10,12 +10,17 @@ import {
     TOGGLE_DIALOG,
     FILL_FORM,
     FETCH_TASKS_SUCCESS,
+    FILL_PARAM,
+    HANDLE_DOWNLOAD,
+    HANDLE_UPLOAD
 } from '../actions/actionTypes';
 
 
 const initialState = {
     isLoading: false,
     isRefreshing: false,
+    isDownloading: false,
+    isUploading: false,
     [TASK_FORM]: {
         result: null,
         remark: null
@@ -26,10 +31,12 @@ const initialState = {
     [SETTINGS_FORM]: {
         ipAddress: null
     },
+    storedIpAddress: null,
     downloads: null,
     checkedDownloads: [],
     examinations: null,
     tasks: null,
+    examinationTasks: null,
     isOpenDialog: false
 }
 
@@ -49,6 +56,18 @@ export const mainReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isLoading: payload
+            }
+
+        case HANDLE_DOWNLOAD:
+            return {
+                ...state,
+                isDownloading: payload
+            }
+
+        case HANDLE_UPLOAD:
+            return {
+                ...state,
+                isUploading: payload
             }
 
         case TOGGLE_DIALOG:
@@ -86,7 +105,7 @@ export const mainReducer = (state = initialState, action) => {
         case FETCH_TASKS_SUCCESS:
             return {
                 ...state,
-                tasks: payload
+                ...payload
             }
 
         case DOWNLOAD_EXAMINATIONS_SUCCESS:
@@ -116,6 +135,12 @@ export const mainReducer = (state = initialState, action) => {
             }
 
         case FILL_FORM:
+            return {
+                ...state,
+                ...payload
+            }
+
+        case FILL_PARAM:
             return {
                 ...state,
                 ...payload

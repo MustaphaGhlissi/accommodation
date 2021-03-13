@@ -6,6 +6,11 @@ function getTasks() {
     return apiInstance.get('/flat-examination-tasks');
 }
 
+function patchTask(id, data) {
+    return apiInstance.patch(`/flat-examination-tasks/${id}`, data);
+}
+
 export {
-    getTasks
+    getTasks,
+    patchTask
 }

@@ -6,7 +6,7 @@ import { FAB, RadioButton, TextInput } from 'react-native-paper';
 import { styles } from '../assets/styles';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FINISH_FORM } from '../constants/forms';
-import { handleTextInput } from '../redux/actions/actionCreators';
+import { fillForm, handleTextInput, updateExamination } from '../redux/actions/actionCreators';
 
 class Finish extends Component {
     
@@ -18,13 +18,23 @@ class Finish extends Component {
         }
     }
 
+    componentWillUnmount() {
+        let {resetForm} = this.props;
+
+        resetForm();
+    }
+    
+    
+
     render() {
 
         const {
             form,
             handleInput,
-            navigation
-        } = this.props;
+            navigation,
+            update,
+            route
+        } = this.props, {examinationId} = route.params;
 
         return (
             <KeyboardAwareScrollView
@@ -38,6 +48,8 @@ class Finish extends Component {
                         numberOfLines={6}
                         label='Remark'
                         mode='outlined'
+                        onChangeText={text => handleInput('remark', text)}
+                        value={form.remark || ''}
                     />
                 </View>
 
@@ -45,7 +57,7 @@ class Finish extends Component {
                     style={styles.fab}
                     color='#fff'
                     icon="check"
-                    onPress={() => navigation.popToTop()}
+                    onPress={() => update(navigation, examinationId)}
                 />
             </KeyboardAwareScrollView>
         )
@@ -57,7 +69,9 @@ const mapStateToProps = ({main}) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    handleInput: (input, value) => dispatch(handleTextInput(FINISH_FORM, input, value))
+    resetForm: () => dispatch(fillForm(FINISH_FORM, {remark: null})),
+    handleInput: (input, value) => dispatch(handleTextInput(FINISH_FORM, input, value)),
+    update: (navigation, examinationId) => dispatch(updateExamination(navigation, examinationId))
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Finish)
