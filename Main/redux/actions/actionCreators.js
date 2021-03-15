@@ -11,7 +11,8 @@ import {
     FILL_FORM,
     FILL_PARAM,
     HANDLE_DOWNLOAD,
-    HANDLE_UPLOAD
+    HANDLE_UPLOAD,
+    HANDLE_BOOT
 } from './actionTypes';
 
 import {
@@ -33,7 +34,20 @@ import { FINISH_FORM, SETTINGS_FORM, TASK_FORM } from '../../constants/forms';
 
 
 
+export function handleBooting(bool) {
+    return {
+        type: HANDLE_BOOT,
+        payload: bool
+    }
+}
 
+export function boot() {
+    return (dispatch) => {
+        setTimeout(() => {
+            dispatch(handleBooting(false))
+        }, 2500)
+    }
+}
 
 export function handleUploading(bool) {
     return {
@@ -138,45 +152,54 @@ export function downloadExaminations(refreshMode) {
     }
 }
 
-export function saveDownloads(navigation, examinations) {
+export function saveDownloads(navigation, checkedExaminations) {
     return (dispatch, getState) => {
 
         const state = getState().main,
-            {tasks} = state.downloads;
+            {examinations, tasks} = state,
+            downloadedTasks = state.downloads.tasks;
         let checkedTasks = [], patchs = [];
 
         dispatch(handleDownloading(true));
 
-        for (const examination of examinations) {
-            for (const task of tasks) {
-                if(task.flatExaminationId === examination.id) {
-                    checkedTasks.push(task);
+        for (const examination of checkedExaminations) {
+            
+            if(downloadedTasks.length > 0) {
+                for (const task of downloadedTasks) {
+                    if(task.flatExaminationId === examination.id) {
+                        checkedTasks.push(task);
+                    }
                 }
             }
             patchs.push(patchExamination(examination.id, {state: 265}));
         }
 
-        Promise.all(patchs)
-            .then(function (results) {
-                console.log(results);
-                storeExaminations(examinations, checkedTasks).then(() => {
-                    Alert.alert('Info', 'Data saved successfully.');
-                    navigation.goBack();
-                    fetchExaminations(true);
+       
+            Promise.all(patchs)
+                .then(function (results) {
+                    storeExaminations([...checkedExaminations, ...examinations], [...checkedTasks, ...tasks])
+                    .then(() => {
+                        Alert.alert('Info', 'Data saved successfully.');
+                        navigation.goBack();
+                        fetchExaminations(true);
+                    });
+                }).catch(function (error) {
+                    console.log(error);
+                })
+                .then(function () {
+                    dispatch(handleDownloading(false));
                 });
-            }).catch(function (error) {
-                console.log(error);
-            })
-            .then(function () {
-                dispatch(handleDownloading(false));
-            });
+       
+       
     }
 }
 
-export function fetchExaminationsSuccess(data) {
+export function fetchExaminationsSuccess(examinations, tasks) {
     return {
         type: FETCH_EXAMINATIONS_SUCCESS,
-        payload: data
+        payload: {
+            examinations, tasks
+        }
     }
 }
 
@@ -191,12 +214,25 @@ export function fetchExaminations(isRefreshing) {
         }
 
         readExaminations().then(values => {
-            let examinations = values[0];
+            let examinations = values[0],
+                tasks = values[1];
             
-            if(examinations[1]) {
+            if(examinations[1] && tasks[1]) {
                 examinations = JSON.parse(examinations[1]);
-                dispatch(fetchExaminationsSuccess(examinations));
+                tasks = JSON.parse(tasks[1]);
+                dispatch(fetchExaminationsSuccess(examinations, tasks));
             }  
+            else if(examinations[1]) {
+                examinations = JSON.parse(examinations[1]);
+                dispatch(fetchExaminationsSuccess(examinations, []));
+            }
+            else if(tasks[1]) {
+                tasks = JSON.parse(tasks[1]);
+                dispatch(fetchExaminationsSuccess([], tasks));
+            }
+            else {
+                dispatch(fetchExaminationsSuccess([], []));
+            }
 
         }).catch(function(error) {
             
@@ -232,47 +268,24 @@ export function updateExamination(navigation, examinationId) {
     }
 }
 
-export function fetchTasksSuccess(tasks, examinationTasks) {
+export function fetchTasksSuccess(examinationTasks) {
     return {
         type: FETCH_TASKS_SUCCESS,
         payload: {
-            tasks,
             examinationTasks
         }
     }
 }
 
 export function fetchTasks(examinationId, isRefreshing) {
-    return (dispatch) => {
-        
-        if(isRefreshing) {
-            dispatch(handleRefreshing(true));
+    return (dispatch, getState) => {
+
+        let state = getState().main, {tasks} = state, examinationTasks;
+
+        if(tasks) {
+            examinationTasks = tasks.filter(task => task.flatExaminationId === examinationId)
+            dispatch(fetchTasksSuccess(examinationTasks));
         }
-        else {
-            dispatch(handleLoading(true));
-        }
-
-        readExaminations().then(values => {
-            let examinationTasks, tasks = values[1];
-            
-            if(tasks[1]) {
-                tasks = JSON.parse(tasks[1]);
-                examinationTasks = tasks.filter(task => task.flatExaminationId === examinationId)
-                dispatch(fetchTasksSuccess(tasks, examinationTasks));
-            }  
-
-        }).catch(function(error) {
-            
-            console.log(error);
-
-        }).then(function() {
-            if(isRefreshing) {
-                dispatch(handleRefreshing(false));
-            }
-            else {
-                dispatch(handleLoading(false));
-            }
-        })
     }
 }
 
@@ -299,40 +312,53 @@ export function updateTask(navigation, task) {
 
 export function upload() {
     return (dispatch, getState) => {
-        let state = getState().main,
-            {examinations, tasks} = state, 
-            patchs = [], upExaminations, filteredTasks;
+        let store = getState().main,
+            {examinations, tasks} = store, 
+            copyExaminations = [...examinations],
+            copyTasks = [...tasks],
+            patchs = [], upExaminations, filteredTasks, examinationId, taskId;
 
             dispatch(handleUploading(true));
 
-            upExaminations = examinations.filter(el => el.state === 266);
-            examinations = examinations.filter(el => el.state !== 266);
+            upExaminations = copyExaminations.filter(el => el.state === 266);
+            copyExaminations = copyExaminations.filter(el => el.state !== 266);
             
-            for (const examination of upExaminations) {
-                patchs.push(patchExamination(examination.id, examination));
-                
-                filteredTasks = tasks.filter(el => el.flatExaminationId === examination.id);
-                tasks = tasks.filter(el => el.flatExaminationId !== examination.id);
-                
-                for (const task of filteredTasks) {
-                    patchs.push(patchTask(task.id, task))
+            for (let examination of upExaminations) {
+                examinationId = examination.id;
+                delete examination.id;
+                patchs.push(patchExamination(examinationId, examination));
+               
+                if(copyTasks.length > 0) {
+                    filteredTasks = copyTasks.filter(el => el.flatExaminationId === examinationId);
+                    copyTasks = copyTasks.filter(el => el.flatExaminationId !== examinationId);
+
+                    for (let task of filteredTasks) {
+                        taskId = task.id;
+                        delete task.id;
+                        patchs.push(patchTask(taskId, task));
+                    }
                 }
             }    
-            
-            Promise
-                .all(patchs)
-                .then(function (results) {
-                    storeExaminations(examinations, tasks).then(() => {
-                        Alert.alert('Info', 'Data saved successfully.');
-                        navigation.goBack();
-                        fetchExaminations(true);
+
+            if(patchs.length > 0) {
+                Promise
+                    .all(patchs)
+                    .then(function (results) {    
+                        storeExaminations(copyExaminations, copyTasks).then(() => {
+                            Alert.alert('Info', 'Data transferred successfully.');
+                            dispatch(fetchExaminations(true))
+                        });
+                    }).catch(function (error) {
+                        console.log(error.response);
+                    })
+                    .then(function () {
+                        dispatch(handleUploading(false));
                     });
-                }).catch(function (error) {
-                    console.log(error);
-                })
-                .then(function () {
-                    dispatch(handleUploading(false));
-                });
+            }
+            else {
+                Alert.alert('Info', 'No data available for upload.');
+                dispatch(handleUploading(false));
+            }
     }
 }
 

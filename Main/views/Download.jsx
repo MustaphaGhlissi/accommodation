@@ -58,7 +58,7 @@ class Download extends Component {
 
                     ListEmptyComponent={
                         <View style={[styles.content, styles.centered]}>
-                            <Text style={styles.muted}>No data</Text>
+                            <Text style={styles.muted}>No available downloads.</Text>
                             <Button
                                 onPress={download}
                                 icon='refresh'

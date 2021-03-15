@@ -3,6 +3,12 @@ import { StyleSheet } from "react-native";
 
 
 export const styles = StyleSheet.create({
+    appTitle: {
+        fontSize: 20,
+        fontFamily: 'Roboto-Bold',
+        color: '#fff',
+        marginBottom: 20
+    },  
     container: {
         flex: 1,
         backgroundColor: '#F1F1F1'
@@ -18,7 +24,7 @@ export const styles = StyleSheet.create({
     muted: {
         color: '#C1C1C1',
         fontFamily: 'Roboto-Bold',
-        fontSize: 27,
+        fontSize: 23,
         marginBottom: 15
     },
     flatList: {

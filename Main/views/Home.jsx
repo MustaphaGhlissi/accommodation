@@ -23,11 +23,9 @@ class Home extends Component {
     componentDidMount() {
         const {
             readFromStorage,
-            navigation
+            navigation,
         } = this.props;
 
-        //removeStorage();
-        
         this._unsubscribe = navigation.addListener('focus', () => {
             readFromStorage();
         });
@@ -61,16 +59,16 @@ class Home extends Component {
             readFromStorage,
             isOpenDialog, 
             toggleDialog,
-            isUploading
+            isUploading,
         } = this.props;
 
         const {
             password
         } = this.state;
 
+        
 
-
-        if(isLoading && !data) {
+        if(isLoading || isUploading) {
            return <Loader />
         }
 
@@ -80,12 +78,23 @@ class Home extends Component {
                     contentContainerStyle={styles.flatList}
                     data={data}
                     renderItem={({item, index}) => <ExaminationItem item={item} key={index}/>}
-                    keyExtractor={item => item.id.toString()}
+                    keyExtractor={item => item.id?.toString()}
                     refreshControl={<RefreshControl 
                             refreshing={isRefreshing} 
                             onRefresh={() => readFromStorage(true)} 
                             colors={[theme.colors.primary, theme.colors.accent]} 
                         />
+                    }
+                    ListEmptyComponent={
+                        <View style={[styles.content, styles.centered]}>
+                            <Text style={styles.muted}>No data found</Text>
+                            <Button
+                                onPress={readFromStorage}
+                                icon='refresh'
+                            >
+                                REFRESH
+                            </Button>
+                        </View>
                     }
                 />
 

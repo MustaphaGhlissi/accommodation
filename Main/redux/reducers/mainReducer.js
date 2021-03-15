@@ -12,11 +12,13 @@ import {
     FETCH_TASKS_SUCCESS,
     FILL_PARAM,
     HANDLE_DOWNLOAD,
-    HANDLE_UPLOAD
+    HANDLE_UPLOAD,
+    HANDLE_BOOT
 } from '../actions/actionTypes';
 
 
 const initialState = {
+    isBooting: true,
     isLoading: false,
     isRefreshing: false,
     isDownloading: false,
@@ -45,6 +47,12 @@ export const mainReducer = (state = initialState, action) => {
     let {payload, type} = action;
     
     switch(type) {
+
+        case HANDLE_BOOT:
+            return {
+                ...state,
+                isBooting: payload
+            }
 
         case HANDLE_LOADING:
             return {
@@ -98,8 +106,7 @@ export const mainReducer = (state = initialState, action) => {
         case FETCH_EXAMINATIONS_SUCCESS:
             return {
                 ...state,
-                examinations: payload,
-                checkedDownloads: payload
+                ...payload
             }
 
         case FETCH_TASKS_SUCCESS:

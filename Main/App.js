@@ -11,11 +11,27 @@ import { NavigationContainer } from '@react-navigation/native';
 import { HomeStack } from './config/stack';
 import { StatusBar } from 'react-native';
 import { withTheme } from 'react-native-paper';
+import { boot } from './redux/actions/actionCreators';
+import SplashScreen from './views/SplashScreen';
+import { connect } from 'react-redux';
 
 export class App extends Component {
+
+  componentDidMount() {
+    let {boot} = this.props;
+    boot();
+  }
+  
+
   render() {
 
-    const {theme} = this.props;
+    let {theme, isBooting} = this.props;
+
+    if(isBooting) {
+      return (
+        <SplashScreen color={theme.colors.primary} />
+      )
+    }
 
     return (
       <NavigationContainer>
@@ -26,6 +42,14 @@ export class App extends Component {
   }
 }
 
-App = withTheme(App);
+const mapStateToProps = ({main}) => ({
+  isBooting: main.isBooting,
+})
 
-export default App
+const mapDispatchToProps = dispatch => ({
+  boot: () => dispatch(boot())
+})
+
+App = withTheme(App)
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)
