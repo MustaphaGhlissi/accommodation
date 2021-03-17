@@ -26,6 +26,8 @@ class Home extends Component {
             navigation,
         } = this.props;
 
+        //removeStorage();
+
         this._unsubscribe = navigation.addListener('focus', () => {
             readFromStorage();
         });
@@ -68,7 +70,7 @@ class Home extends Component {
 
         
 
-        if(isLoading || isUploading) {
+        if(isLoading) {
            return <Loader />
         }
 
@@ -76,7 +78,7 @@ class Home extends Component {
             <SafeAreaView style={styles.container}>
                 <FlatList
                     contentContainerStyle={styles.flatList}
-                    data={data}
+                    data={data || []}
                     renderItem={({item, index}) => <ExaminationItem item={item} key={index}/>}
                     keyExtractor={item => item.id?.toString()}
                     refreshControl={<RefreshControl 

@@ -163,7 +163,6 @@ export function saveDownloads(navigation, checkedExaminations) {
         dispatch(handleDownloading(true));
 
         for (const examination of checkedExaminations) {
-            
             if(downloadedTasks.length > 0) {
                 for (const task of downloadedTasks) {
                     if(task.flatExaminationId === examination.id) {
@@ -174,11 +173,14 @@ export function saveDownloads(navigation, checkedExaminations) {
             patchs.push(patchExamination(examination.id, {state: 265}));
         }
 
-       
+
             Promise.all(patchs)
                 .then(function (results) {
                     storeExaminations([...checkedExaminations, ...examinations], [...checkedTasks, ...tasks])
                     .then(() => {
+                        dispatch(fillParam({
+                            checkedDownloads: []
+                        }))
                         Alert.alert('Info', 'Data saved successfully.');
                         navigation.goBack();
                         fetchExaminations(true);
@@ -346,7 +348,7 @@ export function upload() {
                     .then(function (results) {    
                         storeExaminations(copyExaminations, copyTasks).then(() => {
                             Alert.alert('Info', 'Data transferred successfully.');
-                            dispatch(fetchExaminations(true))
+                            dispatch(fetchExaminations())
                         });
                     }).catch(function (error) {
                         console.log(error.response);

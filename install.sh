@@ -1,0 +1,1 @@
+adb uninstall com.accommodation && npx react-native run-android --variant=release
