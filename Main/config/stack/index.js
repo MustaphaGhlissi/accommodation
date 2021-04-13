@@ -1,5 +1,6 @@
 import React from 'react';
 import { CardStyleInterpolators, createStackNavigator, TransitionPresets } from '@react-navigation/stack';
+import _ from 'lodash';
 import Home from '../../views/Home';
 import AppHeader from '../../components/AppHeader';
 import Settings from '../../views/Settings';
@@ -25,7 +26,7 @@ const HomeStack = () => {
                 name="Home" 
                 component={Home} 
                 options={{
-                    title: 'Flat examinations'
+                    title: 'Wohnungen'
                 }}    
             />
             <Stack.Screen 
@@ -39,29 +40,29 @@ const HomeStack = () => {
                 name="Settings" 
                 component={Settings} 
                 options={{
-                    title: 'Settings'
+                    title: 'Einstellungen'
                 }}    
             />
             <Stack.Screen 
                 name="Tasks" 
-                component={Tasks} 
-                options={{
-                    title: 'Flat examination Tasks'
-                }}    
+                component={Tasks}   
+                options={({ route }) => ({ 
+                    title: _.capitalize(route.params.title) 
+                })}
             />
             <Stack.Screen 
                 name="Task" 
                 component={Task} 
-                options={{
-                    title: 'Task details'
-                }}    
+                options={({ route }) => ({ 
+                    title: _.capitalize(route.params.task.description) 
+                })}
             />
             <Stack.Screen 
                 name="Finish" 
                 component={Finish} 
-                options={{
-                    title: 'Finish'
-                }}    
+                options={({ route }) => ({ 
+                    title: _.capitalize(route.params.title),
+                })}  
             />
         </Stack.Navigator>
     );

@@ -7,33 +7,36 @@ import { Alert } from 'react-native';
 
 const AppHeader = ({scene, previous, navigation}) => {
 
+    const routeName = scene.route.name;
     const { options } = scene.descriptor;
     const title =
       options.headerTitle !== undefined
         ? options.headerTitle
         : options.title !== undefined
         ? options.title
-        : scene.route.name;
+        : routeName;
 
     const dispatch = useDispatch();
+    let subTitle = '';
+    
+    if(routeName === 'Finish') {
+        subTitle = 'AbschlieBen';
+    }
+    else if (routeName === 'Tasks') {
+        subTitle = 'Aufgaben'
+    }
 
     return (
         <Appbar.Header>
             {previous ? <Appbar.BackAction onPress={navigation.goBack} /> : null}
-            <Appbar.Content title={title} />
+            <Appbar.Content
+                title={title}
+                subtitle={subTitle}
+            />
             
             {
                 !previous &&
                 <>
-                    <Appbar.Action icon='arrow-up' color='#fff' onPress={() => {
-                         NetInfo.fetch().then(state => {
-                            if(!state.isConnected) {
-                                Alert.alert('Error', 'No internet connection\nCheck you connectivity and try again.')
-                                return false;
-                            }
-                            dispatch(upload());
-                        });
-                    }}/>
                     <Appbar.Action icon='arrow-down' color='#fff' onPress={() => {
                         NetInfo.fetch().then(state => {
                             if(!state.isConnected) {
@@ -42,8 +45,15 @@ const AppHeader = ({scene, previous, navigation}) => {
                             }
                             navigation.navigate('Download')
                         });
-                       
-                    
+                    }}/>
+                    <Appbar.Action icon='arrow-up' color='#fff' onPress={() => {
+                         NetInfo.fetch().then(state => {
+                            if(!state.isConnected) {
+                                Alert.alert('Error', 'No internet connection\nCheck you connectivity and try again.')
+                                return false;
+                            }
+                            dispatch(upload());
+                        });
                     }}/>
                     <Appbar.Action icon='cog' color='#fff' onPress={() => dispatch(toggleDialog())}/>
                 </>

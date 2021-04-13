@@ -12,7 +12,8 @@ import {
     FILL_PARAM,
     HANDLE_DOWNLOAD,
     HANDLE_UPLOAD,
-    HANDLE_BOOT
+    HANDLE_BOOT,
+    HANDLE_UPDATING
 } from './actionTypes';
 
 import {
@@ -24,6 +25,10 @@ import {
     getTasks,
     patchTask
 } from '../services/tasks';
+
+import {
+    postPhoto
+} from '../services/photos';
 
 import { 
     storeExaminations, readExaminations,
@@ -52,6 +57,13 @@ export function boot() {
 export function handleUploading(bool) {
     return {
         type: HANDLE_UPLOAD,
+        payload: bool
+    }
+}
+
+export function handleUpdating(bool) {
+    return {
+        type: HANDLE_UPDATING,
         payload: bool
     }
 }
@@ -291,12 +303,14 @@ export function fetchTasks(examinationId, isRefreshing) {
     }
 }
 
-export function updateTask(navigation, task) {
+export function updateTask(navigation, task, photos) {
     return (dispatch, getState) => {
         let state = getState().main, form = state[TASK_FORM],
             {tasks} = state,
             {remark, result} = form,
-            index;
+            index, postPhotosRequests = [];
+
+        dispatch(handleUpdating(true));
 
         task.remark = remark;
         task.result = result;
@@ -304,11 +318,23 @@ export function updateTask(navigation, task) {
 
         tasks[index] = task;
 
-        storeItem('@tasks', JSON.stringify(tasks)).then(() => {
-            Alert.alert('Info', 'Data saved successfully.');
-            navigation.goBack();
-            dispatch(fetchTasks(task.flatExaminationId));
+        photos.forEach(photoItem => {
+            postPhotosRequests.push(postPhoto({photo: photoItem.photo, referenceId: '2021'}));
         });
+
+        Promise.all(postPhotosRequests)
+            .then(function (results) {
+                storeItem('@tasks', JSON.stringify(tasks)).then(() => {
+                    dispatch(handleUpdating(false));
+                    Alert.alert('Info', 'Data saved successfully.');
+                    navigation.goBack();
+                    dispatch(fetchTasks(task.flatExaminationId));
+                });
+            }).catch(function (error) {
+                dispatch(handleUpdating(false));
+                console.log(error.response);
+            });
+
     }
 }
 

@@ -13,7 +13,8 @@ import {
     FILL_PARAM,
     HANDLE_DOWNLOAD,
     HANDLE_UPLOAD,
-    HANDLE_BOOT
+    HANDLE_BOOT,
+    HANDLE_UPDATING
 } from '../actions/actionTypes';
 
 
@@ -21,6 +22,7 @@ const initialState = {
     isBooting: true,
     isLoading: false,
     isRefreshing: false,
+    isUpdating: false,
     isDownloading: false,
     isUploading: false,
     [TASK_FORM]: {
@@ -76,6 +78,12 @@ export const mainReducer = (state = initialState, action) => {
             return {
                 ...state,
                 isUploading: payload
+            }
+
+        case HANDLE_UPDATING:
+            return {
+                ...state,
+                isUpdating: payload
             }
 
         case TOGGLE_DIALOG:

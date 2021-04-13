@@ -12,7 +12,7 @@ const ExaminationItem = ({item}) => {
     return (
         Platform.OS === 'android' ? 
         <TouchableNativeFeedback
-            onPress={() => navigation.navigate('Tasks', {examinationId: item.id, remark: item.remark})}
+            onPress={() => navigation.navigate('Tasks', {examinationId: item.id, remark: item.remark, title: item.datePlanned})}
             useForeground
         >
             <View style={styles.accoItem}>
@@ -22,7 +22,7 @@ const ExaminationItem = ({item}) => {
             </View>
         </TouchableNativeFeedback>:
         <TouchableOpacity
-            onPress={() => navigation.navigate('Tasks', {examinationId: item.id, remark: item.remark})}
+            onPress={() => navigation.navigate('Tasks', {examinationId: item.id, remark: item.remark, title: item.datePlanned})}
             activeOpacity={0.6}
             style={styles.accoItem}
         >

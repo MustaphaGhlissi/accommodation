@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 
 
 
@@ -26,6 +26,9 @@ export const styles = StyleSheet.create({
         fontFamily: 'Roboto-Bold',
         fontSize: 23,
         marginBottom: 15
+    },
+    scrollable: {
+        flexGrow: 1
     },
     flatList: {
         flexGrow: 1
@@ -57,5 +60,40 @@ export const styles = StyleSheet.create({
     },
     labelDownload: {
         marginLeft: 15
+    },
+    photosPickerContainer: {
+        marginTop: 30,
+        marginBottom: 100,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    photoContainer: {
+        width: '50%',
+        padding: 5,
+        position: 'relative'
+    },
+    photoPicker: {
+        height: 120,
+        borderRadius: 10,
+        borderStyle: 'dashed',
+        borderColor: '#D1D1D1',
+        borderWidth: 3,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    photo: {
+        borderRadius: 10,
+        width: '100%',
+        height: 120,
+    },
+    removePhoto: {
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        position: 'absolute',
+        right: 10,
+        top: 10,
+        zIndex: 9999,
+        padding: 5, 
+        borderRadius: 32
     }
 })

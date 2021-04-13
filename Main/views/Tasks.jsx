@@ -33,7 +33,7 @@ class Tasks extends Component {
         const {
             theme, navigation, data,
             route, fillForm
-        } = this.props, {examinationId, remark} = route.params;
+        } = this.props, {examinationId, remark, title} = route.params;
 
         return (
             <SafeAreaView style={styles.container}>
@@ -50,7 +50,7 @@ class Tasks extends Component {
                     icon="check"
                     onPress={() => {
                         fillForm(remark);
-                        navigation.navigate('Finish', {examinationId});
+                        navigation.navigate('Finish', {examinationId, title});
                     }}
                 />
             </SafeAreaView>
