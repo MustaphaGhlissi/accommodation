@@ -17,7 +17,7 @@ const storeExaminations = async(examinations, tasks) => {
 
 const readExaminations = async() => {
     try {
-        return await AsyncStorage.multiGet(['@examinations', '@tasks'])      
+        return await AsyncStorage.multiGet(['@examinations', '@tasks', '@accommodation_ip'])      
     } catch(e) {
 
     }

@@ -135,7 +135,9 @@ export function downloadExaminationsSuccess(data) {
 
 export function downloadExaminations(refreshMode) {
     
-    return (dispatch) => {
+    return (dispatch, getState) => {
+
+        const state = getState().main;
 
         if(refreshMode) {
             dispatch(handleRefreshing(true));
@@ -151,7 +153,7 @@ export function downloadExaminations(refreshMode) {
                 data.tasks = results[1].data;
                 dispatch(downloadExaminationsSuccess(data))
             }).catch(function (error) {
-                console.log(error);
+                Alert.alert('Error', 'Please check your IP address in Settings then try again.');
             })
             .then(function () {
                 if(refreshMode) {
@@ -168,9 +170,14 @@ export function saveDownloads(navigation, checkedExaminations) {
     return (dispatch, getState) => {
 
         const state = getState().main,
-            {examinations, tasks} = state,
+            {examinations, tasks, storedIpAddress} = state,
             downloadedTasks = state.downloads.tasks;
         let checkedTasks = [], patchs = [];
+
+        if(!storedIpAddress) {
+            Alert.alert('Error', 'You should set the API IP address in Settings.');
+            return false;
+        }
 
         dispatch(handleDownloading(true));
 
@@ -198,7 +205,7 @@ export function saveDownloads(navigation, checkedExaminations) {
                         fetchExaminations(true);
                     });
                 }).catch(function (error) {
-                    console.log(error);
+                    Alert.alert('Error', 'Please check your IP address in Settings then try again.');
                 })
                 .then(function () {
                     dispatch(handleDownloading(false));
@@ -229,7 +236,8 @@ export function fetchExaminations(isRefreshing) {
 
         readExaminations().then(values => {
             let examinations = values[0],
-                tasks = values[1];
+                tasks = values[1],
+                ipAddress = values[2];
             
             if(examinations[1] && tasks[1]) {
                 examinations = JSON.parse(examinations[1]);
@@ -248,10 +256,17 @@ export function fetchExaminations(isRefreshing) {
                 dispatch(fetchExaminationsSuccess([], []));
             }
 
+            if(ipAddress[1]) {
+                dispatch(fillForm(SETTINGS_FORM, {
+                    ipAddress: ipAddress[1]
+                }))
+                dispatch(fillParam({
+                    storedIpAddress: ipAddress[1]
+                }))
+            }
+
         }).catch(function(error) {
             
-            console.log(error);
-
         }).then(function() {
             if(isRefreshing) {
                 dispatch(handleRefreshing(false));
@@ -306,9 +321,15 @@ export function fetchTasks(examinationId, isRefreshing) {
 export function updateTask(navigation, task, photos) {
     return (dispatch, getState) => {
         let state = getState().main, form = state[TASK_FORM],
-            {tasks} = state,
+            {tasks, storedIpAddress} = state,
             {remark, result} = form,
             index, postPhotosRequests = [];
+
+
+        if(!storedIpAddress) {
+            Alert.alert('Error', 'You should set the API IP address in Settings.');
+            return false;
+        }
 
         dispatch(handleUpdating(true));
 
@@ -332,7 +353,7 @@ export function updateTask(navigation, task, photos) {
                 });
             }).catch(function (error) {
                 dispatch(handleUpdating(false));
-                console.log(error.response);
+                Alert.alert('Error', 'Please check your IP address in Settings then try again.');
             });
 
     }
@@ -341,10 +362,16 @@ export function updateTask(navigation, task, photos) {
 export function upload() {
     return (dispatch, getState) => {
         let store = getState().main,
-            {examinations, tasks} = store, 
+            {examinations, tasks, storedIpAddress} = store, 
             copyExaminations = [...examinations],
             copyTasks = [...tasks],
             patchs = [], upExaminations, filteredTasks, examinationId, taskId;
+
+
+            if(!storedIpAddress) {
+                Alert.alert('Error', 'You should set the API IP address in Settings.');
+                return false;
+            }
 
             dispatch(handleUploading(true));
 
@@ -377,7 +404,7 @@ export function upload() {
                             dispatch(fetchExaminations())
                         });
                     }).catch(function (error) {
-                        console.log(error.response);
+                        Alert.alert('Error', 'Please check your IP address in Settings then try again.');
                     })
                     .then(function () {
                         dispatch(handleUploading(false));
@@ -398,27 +425,15 @@ export function saveIpAddress(navigation, ipAddress) {
         if(storedIpAddress !== form.ipAddress) {
             storeItem('@accommodation_ip', form.ipAddress).then(() => {
                 Alert.alert('Info', 'Ip address saved successfully.');
+                dispatch(fillParam({
+                    storedIpAddress: form.ipAddress
+                }))
                 navigation.popToTop();
             });
         }
         else {
             navigation.popToTop();
         }
-    }
-}
-
-export function readIpAddress() {
-    return (dispatch, getState) => {
-        readItem('@accommodation_ip').then((value) => {
-            if(value) {
-                dispatch(fillForm(SETTINGS_FORM, {
-                    ipAddress: value
-                }))
-                dispatch(fillParam({
-                    storedIpAddress: value
-                }))
-            }
-        });
     }
 }
 

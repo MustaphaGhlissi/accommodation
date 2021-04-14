@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import { Text, View } from 'react-native'
-import { FAB, TextInput, withTheme } from 'react-native-paper'
+import { FAB, TextInput } from 'react-native-paper'
 import { connect } from 'react-redux';
 import { styles } from '../assets/styles'
 import { SETTINGS_FORM } from '../constants/forms';
-import { handleTextInput, readIpAddress, saveIpAddress } from '../redux/actions/actionCreators';
+import { handleTextInput, saveIpAddress } from '../redux/actions/actionCreators';
 import TextInputMask from "react-native-text-input-mask";
 
 class Settings extends Component {
@@ -13,17 +13,10 @@ class Settings extends Component {
         super(props);
     }
 
-    componentDidMount() {
-        let {readIp} = this.props;
-        readIp();
-    }
-    
-
     render() {
 
         const {
             navigation, 
-            theme, 
             saveIp,
             form,
             handleInput
@@ -67,10 +60,7 @@ const mapStateToProps = ({main}) => ({
 
 const mapDispatchToProps = dispatch => ({
     saveIp: (navigation) => dispatch(saveIpAddress(navigation)),
-    readIp: () => dispatch(readIpAddress()),
     handleInput: (input, value) => dispatch(handleTextInput(SETTINGS_FORM, input, value)),
 })
-
-Settings = withTheme(Settings)
 
 export default connect(mapStateToProps, mapDispatchToProps)(Settings)
