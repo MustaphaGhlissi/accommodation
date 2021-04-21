@@ -32,7 +32,8 @@ import {
 
 import { 
     storeExaminations, readExaminations,
-    storeItem, readItem, removeStorage
+    storeItem, readItem, removeStorage,
+    storeMultipleItems,
 } from '../../storage';
 import { Alert } from 'react-native';
 import { FINISH_FORM, SETTINGS_FORM, TASK_FORM } from '../../constants/forms';
@@ -137,7 +138,7 @@ export function downloadExaminations(refreshMode) {
     
     return (dispatch, getState) => {
 
-        const state = getState().main;
+        const state = getState().main, { storedIpAddress } = state;
 
         if(refreshMode) {
             dispatch(handleRefreshing(true));
@@ -146,7 +147,7 @@ export function downloadExaminations(refreshMode) {
             dispatch(handleLoading(true));
         }
         
-        Promise.all([getExaminations(), getTasks()])
+        Promise.all([getExaminations(storedIpAddress), getTasks(storedIpAddress)])
             .then(function (results) {
                 const data = {};
                 data.examinations = results[0].data;
@@ -189,7 +190,7 @@ export function saveDownloads(navigation, checkedExaminations) {
                     }
                 }
             }
-            patchs.push(patchExamination(examination.id, {state: 265}));
+            patchs.push(patchExamination(storedIpAddress, examination.id, {state: 265}));
         }
 
 
@@ -215,11 +216,11 @@ export function saveDownloads(navigation, checkedExaminations) {
     }
 }
 
-export function fetchExaminationsSuccess(examinations, tasks) {
+export function fetchExaminationsSuccess(examinations, tasks, photos) {
     return {
         type: FETCH_EXAMINATIONS_SUCCESS,
         payload: {
-            examinations, tasks
+            examinations, tasks, photos
         }
     }
 }
@@ -237,34 +238,40 @@ export function fetchExaminations(isRefreshing) {
         readExaminations().then(values => {
             let examinations = values[0],
                 tasks = values[1],
-                ipAddress = values[2];
+                ipAddress = values[2],
+                photos = values[3];
             
-            if(examinations[1] && tasks[1]) {
-                examinations = JSON.parse(examinations[1]);
-                tasks = JSON.parse(tasks[1]);
-                dispatch(fetchExaminationsSuccess(examinations, tasks));
-            }  
-            else if(examinations[1]) {
-                examinations = JSON.parse(examinations[1]);
-                dispatch(fetchExaminationsSuccess(examinations, []));
-            }
-            else if(tasks[1]) {
-                tasks = JSON.parse(tasks[1]);
-                dispatch(fetchExaminationsSuccess([], tasks));
-            }
-            else {
-                dispatch(fetchExaminationsSuccess([], []));
-            }
+                if(examinations[1]) {
+                    examinations = JSON.parse(examinations[1]);
+                }
+                else {
+                    examinations = [];
+                }
+
+                if(tasks[1]) {
+                    tasks = JSON.parse(tasks[1]);
+                }
+                else {
+                    tasks = [];
+                }
+
+                if(photos[1]) {
+                    photos = JSON.parse(photos[1]);
+                }
+                else {
+                    photos = [];
+                }
+
+            dispatch(fetchExaminationsSuccess(examinations, tasks, photos));
 
             if(ipAddress[1]) {
                 dispatch(fillForm(SETTINGS_FORM, {
                     ipAddress: ipAddress[1]
-                }))
+                }));
                 dispatch(fillParam({
                     storedIpAddress: ipAddress[1]
-                }))
+                }));
             }
-
         }).catch(function(error) {
             
         }).then(function() {
@@ -318,12 +325,14 @@ export function fetchTasks(examinationId, isRefreshing) {
     }
 }
 
-export function updateTask(navigation, task, photos) {
+export function updateTask(navigation, examinationId, task, uploads) {
     return (dispatch, getState) => {
         let state = getState().main, form = state[TASK_FORM],
-            {tasks, storedIpAddress} = state,
+            {tasks, storedIpAddress, photos} = state,
             {remark, result} = form,
-            index, postPhotosRequests = [];
+            taskPhotoskey = examinationId + '' + task.id,
+            taskPhotosIndex,
+            index;
 
 
         if(!storedIpAddress) {
@@ -339,33 +348,41 @@ export function updateTask(navigation, task, photos) {
 
         tasks[index] = task;
 
-        photos.forEach(photoItem => {
-            postPhotosRequests.push(postPhoto({photo: photoItem.photo, referenceId: '2021'}));
+
+        if (uploads.data.length > 0) {
+            if(photos.length > 0) {
+                taskPhotosIndex = photos.findIndex(photo => photo.key === taskPhotoskey);
+                photos[taskPhotosIndex] = uploads;
+            }
+            else {
+                photos.push(uploads);
+            }
+        }
+
+        storeMultipleItems([['@tasks', JSON.stringify(tasks)], ['@photos', JSON.stringify(photos)]]).then(() => {
+            dispatch(handleUpdating(false));
+            Alert.alert('Info', 'Data saved successfully.');
+            console.log(photos);
+            dispatch(fillParam({
+                photos
+            }));
+            navigation.goBack();
+            dispatch(fetchTasks(task.flatExaminationId));
         });
-
-        Promise.all(postPhotosRequests)
-            .then(function (results) {
-                storeItem('@tasks', JSON.stringify(tasks)).then(() => {
-                    dispatch(handleUpdating(false));
-                    Alert.alert('Info', 'Data saved successfully.');
-                    navigation.goBack();
-                    dispatch(fetchTasks(task.flatExaminationId));
-                });
-            }).catch(function (error) {
-                dispatch(handleUpdating(false));
-                Alert.alert('Error', 'Please check your IP address in Settings then try again.');
-            });
-
     }
 }
 
 export function upload() {
     return (dispatch, getState) => {
         let store = getState().main,
-            {examinations, tasks, storedIpAddress} = store, 
+            {examinations, tasks, photos, storedIpAddress} = store, 
             copyExaminations = [...examinations],
             copyTasks = [...tasks],
-            patchs = [], upExaminations, filteredTasks, examinationId, taskId;
+            copyPhotos = photos ? [...photos] : null,
+            patchs = [], 
+            postPhotosRequests = [],
+            upExaminations, filteredTasks, filteredTaskPhotos,
+            examinationId, taskId;
 
 
             if(!storedIpAddress) {
@@ -381,7 +398,7 @@ export function upload() {
             for (let examination of upExaminations) {
                 examinationId = examination.id;
                 delete examination.id;
-                patchs.push(patchExamination(examinationId, examination));
+                patchs.push(patchExamination(storedIpAddress, examinationId, examination));
                
                 if(copyTasks.length > 0) {
                     filteredTasks = copyTasks.filter(el => el.flatExaminationId === examinationId);
@@ -390,16 +407,31 @@ export function upload() {
                     for (let task of filteredTasks) {
                         taskId = task.id;
                         delete task.id;
-                        patchs.push(patchTask(taskId, task));
+                        patchs.push(patchTask(storedIpAddress, taskId, task));
+
+                        if(copyPhotos.length > 0) {
+                            let photosKey = examinationId + '' + taskId;
+                            filteredTaskPhotos = copyPhotos.find((el, index) => photosKey === el.key);
+                            copyPhotos = copyPhotos.filter((el, index) => photosKey !== el.key);
+
+                            for (let photoItem of filteredTaskPhotos.data) {
+                                postPhotosRequests.push(
+                                    postPhoto(storedIpAddress, {
+                                        photo: photoItem.photo, 
+                                        referenceId: '2021'
+                                    })
+                                );
+                            }
+                        }
                     }
                 }
             }    
 
             if(patchs.length > 0) {
                 Promise
-                    .all(patchs)
+                    .all([...patchs, ...postPhotosRequests])
                     .then(function (results) {    
-                        storeExaminations(copyExaminations, copyTasks).then(() => {
+                        storeExaminations(copyExaminations, copyTasks, copyPhotos).then(() => {
                             Alert.alert('Info', 'Data transferred successfully.');
                             dispatch(fetchExaminations())
                         });

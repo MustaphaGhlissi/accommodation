@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 import { fillForm } from '../redux/actions/actionCreators';
 import { TASK_FORM } from '../constants/forms';
 
-const TaskItem = ({item}) => {
+const TaskItem = ({item, examinationId}) => {
 
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -21,7 +21,7 @@ const TaskItem = ({item}) => {
                     result: item.result,
                     remark: item.remark
                 }))
-                navigation.navigate('Task', {task: item})
+                navigation.navigate('Task', {task: item, examinationId})
             }}
             useForeground
         >
@@ -37,7 +37,7 @@ const TaskItem = ({item}) => {
                     result: item.result,
                     remark: item.remark
                 }))
-                navigation.navigate('Task', {task: item})
+                navigation.navigate('Task', {task: item, examinationId})
             }}
             activeOpacity={0.6}
             style={styles.accoItem}

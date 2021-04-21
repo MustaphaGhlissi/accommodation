@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { styles } from '../assets/styles'
 import { SETTINGS_FORM } from '../constants/forms';
 import { handleTextInput, saveIpAddress } from '../redux/actions/actionCreators';
-import TextInputMask from "react-native-text-input-mask";
 
 class Settings extends Component {
 
@@ -30,15 +29,7 @@ class Settings extends Component {
                         mode='outlined'
                         placeholder='127.0.0.1'
                         value={form.ipAddress || ''}
-                        render={props =>
-                            <TextInputMask
-                              {...props}
-                              onChangeText={(formatted, extracted) => {
-                                handleInput('ipAddress', extracted)
-                              }}
-                              mask="[099]{.}[099]{.}[099]{.}[099]"
-                            />
-                        }
+                        onChangeText={text => handleInput('ipAddress', text)}
                     />
                 </View>
                 <FAB

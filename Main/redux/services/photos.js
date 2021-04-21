@@ -2,8 +2,8 @@ import {
     apiInstance
 }  from './index';
 
-function postPhoto(data) {
-    return apiInstance.post(`/flat-examination-task-photos`, data);
+function postPhoto(rootBaseURL, data) {
+    return apiInstance(rootBaseURL).post(`/flat-examination-task-photos`, data);
 }
 
 export {

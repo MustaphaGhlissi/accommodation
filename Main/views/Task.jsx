@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { FAB, Text, RadioButton, TextInput, withTheme, Portal, Dialog } from 'react-native-paper';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { styles } from '../assets/styles';
-import { fillForm, handleRadio, handleTextInput, updateTask } from '../redux/actions/actionCreators';
+import { handleRadio, handleTextInput, updateTask } from '../redux/actions/actionCreators';
 import { TASK_FORM } from '../constants/forms';
 import PhotoPicker from '../components/PhotoPicker';
 import Photo from '../components/Photo';
@@ -18,14 +18,23 @@ class Task extends Component {
         super(props);
 
         this.state = {
-            photos: [],
-            isOpenModal: false
+            uploads: {},
+            isOpenModal: false,
         }
     }
 
-    componentWillUnmount() {
-        let { resetForm } = this.props;
-        resetForm();
+    componentDidMount() {
+        const {
+            photos,
+            route,
+        } = this.props, 
+        { task, examinationId } = route.params, 
+        photosKey = examinationId + '' + task.id,
+        taskPhotos = photos.length > 0 ? photos.find(photo => photosKey === photo.key) : null;
+
+        this.setState({
+            uploads: taskPhotos && taskPhotos !== undefined ? taskPhotos : { key: photosKey, data: [] },
+        });
     }
 
     toggleModal = () => {
@@ -55,13 +64,16 @@ class Task extends Component {
                     }
 
                     this.setState(state => ({
-                        photos: [
-                            ...state.photos,
-                            {
-                                photo: base64,
-                                uri: `data:${type};base64,${base64}`
-                            }
-                        ]
+                        uploads: {
+                            ...state.uploads,
+                            data: [
+                                ...state.uploads.data,
+                                {
+                                    photo: base64,
+                                    uri: `data:${type};base64,${base64}`
+                                }
+                            ]
+                        }
                     }));
                 },
             )
@@ -91,13 +103,16 @@ class Task extends Component {
                     }
 
                     this.setState(state => ({
-                        photos: [
-                            ...state.photos,
-                            {
-                                photo: base64,
-                                uri: `data:${type};base64,${base64}`
-                            }
-                        ]
+                        uploads: {
+                            ...state.uploads,
+                            data: [
+                                ...state.uploads.data,
+                                {
+                                    photo: base64,
+                                    uri: `data:${type};base64,${base64}`
+                                }
+                            ]
+                        }
                     }));
                 },
             )
@@ -105,13 +120,12 @@ class Task extends Component {
     }
 
     removePhoto = (index) => {
-        let { photos } = this.state;
-
-        photos = photos.filter((photo, key) => key !== index);
-
-        this.setState({
-            photos
-        });
+        this.setState( state => ({
+            uploads: {
+                ...state.uploads,
+                data: state.uploads.data.filter((photo, key) => key !== index),
+            }
+        }));
     }
 
     render() {
@@ -124,16 +138,18 @@ class Task extends Component {
             route,
             update,
             isUpdating,
-            theme
-        } = this.props, { task } = route.params;
+            theme,
+            photos
+        } = this.props, { task, examinationId } = route.params;
 
         const {
-            photos,
+            uploads,
             isOpenModal,
         } = this.state;
 
         return (
             <View style={styles.container}>
+                
                 <ScrollView
                     contentContainerStyle={styles.scrollable}
                     keyboardShouldPersistTaps='always'
@@ -148,7 +164,7 @@ class Task extends Component {
                         </Text>
                             <RadioButton.Group
                                 onValueChange={newValue => handleRadio('result', newValue === 'true')}
-                                value={form.result?.toString() || task.result.toString()}
+                                value={form.result?.toString() || task.result?.toString()}
                             >
                                 <View style={styles.radio}>
                                     <RadioButton value={'true'} />
@@ -173,7 +189,7 @@ class Task extends Component {
 
                         <View style={styles.photosPickerContainer}>
                             {
-                                photos.map((photo, index) => (
+                                uploads.data && uploads.data.map((photo, index) => (
                                     <Photo
                                         key={index}
                                         source={photo.uri}
@@ -181,6 +197,7 @@ class Task extends Component {
                                     />
                                 ))
                             }
+                        
                             <PhotoPicker
                                 toggleModal={this.toggleModal}
                             />
@@ -193,7 +210,7 @@ class Task extends Component {
                     style={styles.fab}
                     color='#fff'
                     icon="check"
-                    onPress={() => update(navigation, task, photos)}
+                    onPress={() => update(navigation, examinationId, task, uploads)}
                 />
 
                 <PickerModal
@@ -225,14 +242,14 @@ class Task extends Component {
 
 const mapStateToProps = ({ main }) => ({
     form: main[TASK_FORM],
-    isUpdating: main.isUpdating
+    isUpdating: main.isUpdating,
+    photos: main.photos
 })
 
 const mapDispatchToProps = dispatch => ({
-    resetForm: () => dispatch(fillForm(TASK_FORM, { result: null, remark: null })),
     handleInput: (input, value) => dispatch(handleTextInput(TASK_FORM, input, value)),
     handleRadio: (radio, value) => dispatch(handleRadio(TASK_FORM, radio, value)),
-    update: (navigation, task, photos) => dispatch(updateTask(navigation, task, photos))
+    update: (navigation, examinationId, task, photos) => dispatch(updateTask(navigation, examinationId, task, photos))
 })
 
 Task = withTheme(Task);

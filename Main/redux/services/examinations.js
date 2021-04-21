@@ -3,12 +3,12 @@ import {
 }  from './index';
 
 
-function getExaminations() {
-    return apiInstance.get('/flat-examinations');
+function getExaminations(rootBaseURL) {
+    return apiInstance(rootBaseURL).get('/flat-examinations');
 }
 
-function patchExamination(id, data) {
-    return apiInstance.patch(`/flat-examinations/${id}`, data);
+function patchExamination(rootBaseURL, id, data) {
+    return apiInstance(rootBaseURL).patch(`/flat-examinations/${id}`, data);
 }
 
 

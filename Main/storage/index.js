@@ -1,14 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
-const storeExaminations = async(examinations, tasks) => {
+const storeExaminations = async(examinations, tasks, photos = []) => {
     try {
         const jsonExaminations = JSON.stringify(examinations);
         const jsonTasks = JSON.stringify(tasks);
+        const jsonPhotos = JSON.stringify(photos);
         
-        const examinationsData = ["@examinations", jsonExaminations]
-        const tasksData = ["@tasks", jsonTasks]
+        const examinationsData = ["@examinations", jsonExaminations];
+        const tasksData = ["@tasks", jsonTasks];
+        const photosData = ["@photos", jsonPhotos];
 
-        await AsyncStorage.multiSet([examinationsData, tasksData])
+        await AsyncStorage.multiSet([examinationsData, tasksData, photosData])
 
     } catch (error) {
 
@@ -17,7 +19,7 @@ const storeExaminations = async(examinations, tasks) => {
 
 const readExaminations = async() => {
     try {
-        return await AsyncStorage.multiGet(['@examinations', '@tasks', '@accommodation_ip'])      
+        return await AsyncStorage.multiGet(['@examinations', '@tasks', '@accommodation_ip', '@photos'])      
     } catch(e) {
 
     }
@@ -40,6 +42,16 @@ const storeItem = async (key, value) => {
   }
 }
 
+const storeMultipleItems = async(items) => {
+  try {
+      await AsyncStorage.multiSet(items)
+
+  } catch (error) {
+
+  }
+}
+
+
 const readItem = async (key) => {
   try {
     return await AsyncStorage.getItem(key)
@@ -52,6 +64,7 @@ export {
   storeExaminations,
   readExaminations,
   storeItem,
+  storeMultipleItems,
   readItem,
   removeStorage
 }

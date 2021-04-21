@@ -40,6 +40,7 @@ const initialState = {
     checkedDownloads: [],
     examinations: null,
     tasks: null,
+    photos: null,
     examinationTasks: null,
     isOpenDialog: false
 }

@@ -31,7 +31,7 @@ class Tasks extends Component {
     render() {
 
         const {
-            theme, navigation, data,
+            navigation, data,
             route, fillForm
         } = this.props, {examinationId, remark, title} = route.params;
 
@@ -40,7 +40,7 @@ class Tasks extends Component {
                 <FlatList
                     contentContainerStyle={styles.flatList}
                     data={data}
-                    renderItem={({item, index}) => <TaskItem item={item} key={index}/>}
+                    renderItem={({item, index}) => <TaskItem examinationId={examinationId} item={item} key={index}/>}
                     keyExtractor={item => item.id.toString()} 
                 />
 

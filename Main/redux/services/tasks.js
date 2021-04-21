@@ -2,12 +2,12 @@ import {
     apiInstance
 }  from './index';
 
-function getTasks() {
-    return apiInstance.get('/flat-examination-tasks');
+function getTasks(rootBaseURL) {
+    return apiInstance(rootBaseURL).get('/flat-examination-tasks');
 }
 
-function patchTask(id, data) {
-    return apiInstance.patch(`/flat-examination-tasks/${id}`, data);
+function patchTask(rootBaseURL, id, data) {
+    return apiInstance(rootBaseURL).patch(`/flat-examination-tasks/${id}`, data);
 }
 
 export {

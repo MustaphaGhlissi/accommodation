@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
         marginBottom: 15
     },
     scrollable: {
-        flexGrow: 1
+        flexGrow: 1,
     },
     flatList: {
         flexGrow: 1
