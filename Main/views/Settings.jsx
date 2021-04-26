@@ -27,9 +27,9 @@ class Settings extends Component {
                     <TextInput 
                         label='API ip-address'
                         mode='outlined'
-                        placeholder='127.0.0.1'
+                        placeholder='http://192.168.0.23:8080'
                         value={form.ipAddress || ''}
-                        onChangeText={text => handleInput('ipAddress', text)}
+                        onChangeText={text => handleInput('ipAddress', text.trim())}
                     />
                 </View>
                 <FAB

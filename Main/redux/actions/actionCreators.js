@@ -37,6 +37,7 @@ import {
 } from '../../storage';
 import { Alert } from 'react-native';
 import { FINISH_FORM, SETTINGS_FORM, TASK_FORM } from '../../constants/forms';
+import _ from 'lodash';
 
 
 
@@ -154,6 +155,7 @@ export function downloadExaminations(refreshMode) {
                 data.tasks = results[1].data;
                 dispatch(downloadExaminationsSuccess(data))
             }).catch(function (error) {
+                console.log(error);
                 Alert.alert('Error', 'Please check your IP address in Settings then try again.');
             })
             .then(function () {
@@ -449,12 +451,18 @@ export function upload() {
     }
 }
 
-export function saveIpAddress(navigation, ipAddress) {
+export function saveIpAddress(navigation) {
     return (dispatch, getState) => {
 
         let state = getState().main, form = state[SETTINGS_FORM], {storedIpAddress} = state;
 
         if(storedIpAddress !== form.ipAddress) {
+            if(!_.startsWith(storedIpAddress, 'http://') || !_.startsWith(storedIpAddress, 'https://')) {
+                Alert.alert('Error', 'IP address is invalid\n\n' +
+                    'Make sure to respect this format including http(s) scheme\n\n' + 
+                    'Example: http://192.168.1.1');
+                return false;
+            }
             storeItem('@accommodation_ip', form.ipAddress).then(() => {
                 Alert.alert('Info', 'Ip address saved successfully.');
                 dispatch(fillParam({
